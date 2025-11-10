@@ -5,6 +5,7 @@ pclath_temp	EQU	0x7F
 VALUE_4 	EQU	0x24		;Original value of k-4	
 VALUE_5 	EQU	0x25		;Original value of k-5
 VALUE_6		EQU	0x26		;Original value of k-6
+VALUE_7		EQU	0x27		;Original Value of k-7
 STORE_1		EQU	0X28		;Temp storage for calcluations
 ACCUM_L		EQU	0x7B		;Low Accumulator    
 ACCUM_H		EQU	0x7C		;High Accumulator
@@ -53,6 +54,25 @@ FILTER_STEP_6 ; Multiply by 2
 	incf	ACCUM_H	, f
 	nop
 	    return
+
+FILTER_STEP_7 ; Multiply by -.25
+	movf    VALUE_7	, w   ;store original value in temp registry
+	movwf	STORE_1	      ;store original value in temp registry	
+	bcf	STATUS  , C   ;Clearing the carry flag
+	rrf	STORE_1	, f   ;divide value 5 by 2 then store at 0x27
+	bcf	STATUS	, C
+	rrf	STORE_1	, f   ;divide value 5 by 2 then store at f
+	comf	STORE_1	, f   ;Flip the bits of the temp reg making the value negative
+	incf	STORE_1,  f   ;increment by one to complete the twos complement
+	movf	STORE_1,  w ; move value back to WR for accumulator calculations
+	
+	;Adding to the accumulator 
+	addwf	ACCUM_L	, f 
+	btfsc	STATUS	, C
+	incf	ACCUM_H	, f
+	nop
+	
+	    return
 	
 main ; remaining code goes here
 	    ;Clearing all registers at program start
@@ -61,6 +81,7 @@ clrf    ACCUM_H
 clrf	VALUE_4
 clrf	VALUE_5
 clrf	VALUE_6
+clrf	VALUE_7
 	    
 	movlw   0x0A		   ; w=10
 	movwf   VALUE_4            ; store_1 =10
