@@ -1,0 +1,73 @@
+;***** VARIABLE DEFINITIONS
+w_temp		EQU	0x7D		; variable used for context saving 
+status_temp	EQU	0x7E		; variable used for context saving
+pclath_temp	EQU	0x7F		; variable used for context saving
+VALUE_4 	EQU	0x24		;Original value of k-4	
+VALUE_5 	EQU	0x25		;Original value of k-5
+VALUE_6		EQU	0x26		;Original value of k-6
+STORE_1		EQU	0X28		;Temp storage for calcluations
+ACCUM_L		EQU	0x7B		;Low Accumulator    
+ACCUM_H		EQU	0x7C		;High Accumulator
+
+
+;subroutines
+	
+FILTER_STEP_4 ; Multiply by 4
+	movf    VALUE_4	, w ; Copy original value to WR
+	movwf   STORE_1	    ; Store in temp reg for calculations
+	bcf     STATUS	, C ;Check if carry flag is set 
+	rlf     STORE_1	, f ; Multiply Store_1 by 2
+	bcf     STATUS	, C  ; Checks carry flag
+	rlf     STORE_1	, w ; Multiplies again by 2 and stores value in WR
+	
+	addwf	ACCUM_L	, f ; Adds comuted value to Low accumulator (WR+ACCUM_L)
+	btfsc	STATUS	, C ; check if carry flag was triggered
+	incf	ACCUM_H	, f ; Incremenets high accumulator if carry flag was flipped else skipps
+	nop
+	    return  
+	    
+FILTER_STEP_5 ; Multiply by 1.5
+	movf    VALUE_5	, w ;move original value to wr
+	movwf	STORE_1	    ;store temp value in temp registry
+	bcf	STATUS  , C ;Clearing the carry flag
+	rrf	STORE_1	, w ;divide value 5 by 2 then store at WR
+	ADDwf	STORE_1	, w ;Add the original value and the half value together to get the sum of x*1.5 and store in WR
+	
+	;Adding to the accumulator 
+	addwf	ACCUM_L	, f 
+	btfsc	STATUS	, C
+	incf	ACCUM_H	, f
+	nop
+	
+	    return
+	
+FILTER_STEP_6 ; Multiply by 2
+	movf	VALUE_6	, w ; Copy original value to WR
+	movwf	STORE_1	    ;Store in temp reg for calculations
+	bcf	STATUS	, C ;Check if carry flag is set 
+	rlf	STORE_1	, w ;Store new calculated value in WR
+	
+	;Adding to the accumulator 
+	addwf	ACCUM_L	, f
+	btfsc	STATUS	, C
+	incf	ACCUM_H	, f
+	nop
+	    return
+	
+main ; remaining code goes here
+	    ;Clearing all registers at program start
+clrf	ACCUM_L 
+clrf    ACCUM_H
+clrf	VALUE_4
+clrf	VALUE_5
+clrf	VALUE_6
+	    
+	movlw   0x0A		   ; w=10
+	movwf   VALUE_4            ; store_1 =10
+	call	FILTER_STEP_4
+	call	FILTER_STEP_5
+	call	FILTER_STEP_6
+	nop
+	goto    $
+	
+	END                       ; directive 'end of program'
