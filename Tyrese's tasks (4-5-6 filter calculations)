@@ -1,7 +1,7 @@
 ;***** VARIABLE DEFINITIONS
-w_temp		EQU	0x7D		; variable used for context saving 
-status_temp	EQU	0x7E		; variable used for context saving
-pclath_temp	EQU	0x7F		; variable used for context saving
+w_temp		EQU	0x7D		
+status_temp	EQU	0x7E		
+pclath_temp	EQU	0x7F		
 VALUE_4 	EQU	0x24		;Original value of k-4	
 VALUE_5 	EQU	0x25		;Original value of k-5
 VALUE_6		EQU	0x26		;Original value of k-6
@@ -70,4 +70,4 @@ clrf	VALUE_6
 	nop
 	goto    $
 	
-	END                       ; directive 'end of program'
+	END                       
